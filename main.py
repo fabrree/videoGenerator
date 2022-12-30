@@ -20,10 +20,10 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Video Generator")
+        self.geometry("300x220")
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.configure(fg_color="#1c1917")
-
         with open('config.json', 'r') as file:
             self.config_data = json.load(file)
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -58,7 +58,7 @@ class App(ctk.CTk):
 
         change_apikey_button = ctk.CTkButton(self.frame_left,
                                              text="Change API Key",
-                                             text_font=("Helvetica", 10),
+                                             text_font=("Helvetica", 14),
                                              fg_color="#047857",
                                              hover_color="#059669",
                                              command=lambda: self.setApiKeyTopLevel(text="Change your Pexels API Key."))
@@ -66,19 +66,18 @@ class App(ctk.CTk):
 
         amount_of_videos_label = ctk.CTkLabel(self.frame_left,
                                               text="Amount of videos",
-                                              text_font=("Helvetica", 10),
+                                              text_font=("Helvetica", 14),
                                               anchor=ctk.W,)
         amount_of_videos_label.grid(row=5, column=0, padx=(5))
 
         amount_of_videos_entry = ctk.CTkEntry(self.frame_left,
-                                              text_font=("Helvetica", 10))
+                                              text_font=("Helvetica", 14))
         amount_of_videos_entry.grid(row=6, column=0, padx=(5))
-        amount_of_videos_entry.insert(
-            0, f"{self.config_data['amountOfVideosToMake']}")
+        amount_of_videos_entry.insert(0, f"{self.config_data['amountOfVideosToMake']}")
         update_amount_of_videos_button = ctk.CTkButton(self.frame_left,
                                                        text="Update",
                                                        text_font=(
-                                                           "Helvetica", 10),
+                                                           "Helvetica", 14),
                                                        fg_color="#047857",
                                                        hover_color="#059669",
                                                        command=lambda: self.saveAmountOfVideos(amount_of_videos_entry.get()))
@@ -88,7 +87,7 @@ class App(ctk.CTk):
         check_if_imagemagick_is_installed_button = ctk.CTkButton(self.frame_left,
                                                                  text="Check ImageMagick \n installation",
                                                                  text_font=(
-                                                                     "Helvetica", 10),
+                                                                     "Helvetica", 14),
                                                                  fg_color="#047857",
                                                                  hover_color="#059669",
                                                                  command=lambda: self.magicksInstallTopLevel())
@@ -118,7 +117,7 @@ class App(ctk.CTk):
                              text=text,
                              justify="left",
                              anchor=ctk.W,
-                             text_font=("Helvetica", 10, "bold"),
+                             text_font=("Helvetica", 14, "bold"),
                              )
         label.grid(row=0, column=0, sticky=ctk.W, padx=(5))
 
@@ -134,7 +133,7 @@ class App(ctk.CTk):
                                     text="Save",
                                     fg_color="#15803d",
                                     hover_color="#16a34a",
-                                    text_font=("Helvetica", 10, "bold"),
+                                    text_font=("Helvetica", 14, "bold"),
                                     text_color="white",
                                     width=10,
                                     command=lambda: self.saveApiKey(
@@ -146,7 +145,7 @@ class App(ctk.CTk):
                                     text="Quit",
                                     fg_color="#991b1b",
                                     hover_color="#b91c1c",
-                                    text_font=("Helvetica", 10, "bold"),
+                                    text_font=("Helvetica", 14, "bold"),
                                     text_color="white",
                                     width=12,
                                     command=lambda: self.quit()
@@ -159,13 +158,13 @@ class App(ctk.CTk):
         window.configure(fg_color="#1c1917")
         top_label = ctk.CTkLabel(window,
                                  text="Checking if ImageMagick is installed",
-                                 text_font=("Helvetica", 12, "bold"),
+                                 text_font=("Helvetica", 14, "bold"),
                                  )
         top_label.grid(row=1, column=0, padx=(5), pady=(0))
         bottom_label = ctk.CTkLabel(window,
                                     text="",
                                     anchor=ctk.W,
-                                    text_font=("Helvetica", 10),
+                                    text_font=("Helvetica", 14),
                                     )
         bottom_label.grid(row=2, column=0, padx=(5), pady=(0))
 
@@ -201,7 +200,7 @@ class App(ctk.CTk):
                                        text="Yes",
                                        fg_color="#15803d",
                                        hover_color="#16a34a",
-                                       text_font=("Helvetica", 10, "bold"),
+                                       text_font=("Helvetica", 14, "bold"),
                                        text_color="white",
                                        width=16,
                                        command=lambda: self.launchImageMagicksInstaller(
@@ -212,7 +211,7 @@ class App(ctk.CTk):
                                     text="No",
                                     fg_color="#991b1b",
                                     hover_color="#b91c1c",
-                                    text_font=("Helvetica", 10, "bold"),
+                                    text_font=("Helvetica", 14, "bold"),
                                     text_color="white",
                                     width=16,
                                     command=lambda: window.destroy()
@@ -225,7 +224,7 @@ class App(ctk.CTk):
 
         top_label = ctk.CTkLabel(window,
                                  text="Generating videos",
-                                 text_font=("Helvetica", 12, "bold"),
+                                 text_font=("Helvetica", 14, "bold"),
                                  )
         top_label.grid(row=0, column=0, padx=(5), pady=(5))
         self.verifyData(top_label)
