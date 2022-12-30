@@ -3,14 +3,16 @@ import json
 import os
 import random
 import subprocess
+from textwrap import wrap
 import threading
-
+import tkinter
 import customtkinter as ctk
 import gtts
 import requests
 from moviepy.editor import *
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from mutagen.mp3 import MP3
+from sqlalchemy import column
 from tqdm.auto import tqdm
 
 
@@ -20,90 +22,107 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Video Generator")
-        self.geometry("300x220")
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+        self.geometry("600x400")
+        # self.grid_columnconfigure(1, weight=1)
+        # self.grid_rowconfigure(0, weight=1)
+        self.resizable(width=False, height=False)
         self.configure(fg_color="#1c1917")
+
+        self.grid_rowconfigure(3)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=5)
+        self.grid_columnconfigure(2, weight=1)
+
         with open('config.json', 'r') as file:
             self.config_data = json.load(file)
         os.system('cls' if os.name == 'nt' else 'clear')
 
-        pexels_api_key = self.config_data['pexelsAPIKey']
-        api_key_set = (pexels_api_key != ""
-                       and pexels_api_key != "Not set"
-                       and pexels_api_key != "None")
-        if not api_key_set:
+        self.pexels_api_key = self.config_data['pexelsAPIKey']
+        self.api_key_set = (self.pexels_api_key != ""
+                       and self.pexels_api_key != "Not set"
+                       and self.pexels_api_key != "None")
+        if not self.api_key_set:
             self.setApiKeyTopLevel(
                 text="You've not set your Pexels API Key yet.")
 
-        # <----------------- LEFT FRAME ----------------->#
-        self.frame_left = ctk.CTkFrame(master=self,
-                                       width=180,
-                                       fg_color="#292524",
-                                       corner_radius=0)
-        self.frame_left.grid(row=0, column=0, sticky="nswe")
-        self.frame_left.grid_rowconfigure(1, minsize=10)
-        self.frame_left.grid_rowconfigure(3, minsize=10)
 
-        current_config_label = ctk.CTkLabel(self.frame_left,
-                                            text="Current Config",
-                                            text_font=(
-                                                "Helvetica", 14, "bold"),
-                                            width=20,
-                                            height=1,
-                                            anchor=ctk.W,
-                                            corner_radius=0)
-        current_config_label.grid(
-            row=0, column=0, sticky=ctk.W, padx=5, pady=5)
 
-        change_apikey_button = ctk.CTkButton(self.frame_left,
+        current_config_label = ctk.CTkLabel(
+                    text="Videogenerator V3",
+                    master=self, 
+                    text_font=('',50),
+                    )
+        current_config_label.grid(row=0, column=0, columnspan=3, padx=0, pady=10, sticky="nsew")
+
+
+
+
+
+
+        # <----------------- API KEY ----------------->#
+
+        self.row1 = 10
+        current_api_key_label = ctk.CTkLabel(
+                            text="Your API key",
+                            justify='left',
+                            anchor='w',
+                            master=self,)
+        current_api_key_label.grid(row=self.row1, column=0,padx=10, pady=5, sticky="w")
+
+        # self.textText= ctk.CTkEntry(
+        #                     master=self,
+        #                     state='disabled'
+        #                     )
+        # self.textText.insert(0, "Hello")
+        # self.textText.grid(row=row1, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.textbox = ctk.CTkTextbox(self, height=5,wrap='none')
+        self.textbox.insert("0.0" , self.pexels_api_key)  # insert at line 0 character 0
+        self.textbox.configure(state="disabled")  # configure textbox to be read-only
+        self.textbox.grid(row=self.row1, column=1,padx=10, pady=5,sticky="nsew")
+        # current_api_key_value.grid(row=row1, column=1,padx=10, pady=5, sticky="w")
+
+        change_apikey_button = ctk.CTkButton(self,
                                              text="Change API Key",
-                                             text_font=("Helvetica", 14),
-                                             fg_color="#047857",
-                                             hover_color="#059669",
                                              command=lambda: self.setApiKeyTopLevel(text="Change your Pexels API Key."))
-        change_apikey_button.grid(row=2, column=0, padx=5)
+        change_apikey_button.grid(row=self.row1, column=2, padx=5)
 
-        amount_of_videos_label = ctk.CTkLabel(self.frame_left,
-                                              text="Amount of videos",
-                                              text_font=("Helvetica", 14),
-                                              anchor=ctk.W,)
-        amount_of_videos_label.grid(row=5, column=0, padx=(5))
 
-        amount_of_videos_entry = ctk.CTkEntry(self.frame_left,
-                                              text_font=("Helvetica", 14))
-        amount_of_videos_entry.grid(row=6, column=0, padx=(5))
-        amount_of_videos_entry.insert(0, f"{self.config_data['amountOfVideosToMake']}")
-        update_amount_of_videos_button = ctk.CTkButton(self.frame_left,
+        # <----------------- VIDEOS TO CREATE ----------------->#
+        row4 = 40
+        amount_of_videos_label = ctk.CTkLabel(
+                            text="Videos to create",
+                            justify='left',
+                            anchor='w',
+                            master=self,)
+        amount_of_videos_label.grid(row=row4, column=0,padx=10, pady=5, sticky="w")
+
+        amount_of_videos_entry= ctk.CTkEntry(
+                            master=self,)
+        amount_of_videos_entry.grid(row=row4, column=1, padx=10, pady=5,sticky="nsew")
+        # amount_of_videos_entry.insert(0, f"{self.config_data['amountOfVideosToMake']}") # save all configs by default on run
+
+        update_amount_of_videos_button = ctk.CTkButton(self,
                                                        text="Update",
-                                                       text_font=(
-                                                           "Helvetica", 14),
-                                                       fg_color="#047857",
-                                                       hover_color="#059669",
                                                        command=lambda: self.saveAmountOfVideos(amount_of_videos_entry.get()))
-        update_amount_of_videos_button.grid(
-            row=7, column=0, padx=(5), pady=(5))
+        update_amount_of_videos_button.grid(row=row4, column=2, padx=5)
 
-        check_if_imagemagick_is_installed_button = ctk.CTkButton(self.frame_left,
+
+
+        check_if_imagemagick_is_installed_button = ctk.CTkButton(self,
                                                                  text="Check ImageMagick \n installation",
-                                                                 text_font=(
-                                                                     "Helvetica", 14),
-                                                                 fg_color="#047857",
-                                                                 hover_color="#059669",
                                                                  command=lambda: self.magicksInstallTopLevel())
         check_if_imagemagick_is_installed_button.grid(
             row=12, column=0, padx=(5), pady=(5))
-        # <----------------- END OF LEFT FRAME ----------------->#
 
-        # <----------------- RIGHT FRAME -------------------->#
         button = ctk.CTkButton(self,
                                text="Generate Videos",
-                               text_font=("Helvetica", 12, "bold"),
-                               fg_color="#6d28d9",
-                               hover_color="#7c3aed",
                                command=lambda: self.generateVideosTopLevel())
-        button.grid(row=0, column=1, sticky=ctk.NSEW, padx=5, pady=5)
-        # <----------------- END OF RIGHT FRAME -------------->#
+        button.grid(row=100, column=1, sticky=ctk.NSEW, padx=5, pady=5)
+        # <----------------- END OF LEFT FRAME ----------------->#
+
+
+
 
     # <----------------- TOPLEVELS ----------------->#
     def setApiKeyTopLevel(self, text):
@@ -117,7 +136,6 @@ class App(ctk.CTk):
                              text=text,
                              justify="left",
                              anchor=ctk.W,
-                             text_font=("Helvetica", 14, "bold"),
                              )
         label.grid(row=0, column=0, sticky=ctk.W, padx=(5))
 
@@ -133,7 +151,6 @@ class App(ctk.CTk):
                                     text="Save",
                                     fg_color="#15803d",
                                     hover_color="#16a34a",
-                                    text_font=("Helvetica", 14, "bold"),
                                     text_color="white",
                                     width=10,
                                     command=lambda: self.saveApiKey(
@@ -145,7 +162,6 @@ class App(ctk.CTk):
                                     text="Quit",
                                     fg_color="#991b1b",
                                     hover_color="#b91c1c",
-                                    text_font=("Helvetica", 14, "bold"),
                                     text_color="white",
                                     width=12,
                                     command=lambda: self.quit()
@@ -158,13 +174,11 @@ class App(ctk.CTk):
         window.configure(fg_color="#1c1917")
         top_label = ctk.CTkLabel(window,
                                  text="Checking if ImageMagick is installed",
-                                 text_font=("Helvetica", 14, "bold"),
                                  )
         top_label.grid(row=1, column=0, padx=(5), pady=(0))
         bottom_label = ctk.CTkLabel(window,
                                     text="",
                                     anchor=ctk.W,
-                                    text_font=("Helvetica", 14),
                                     )
         bottom_label.grid(row=2, column=0, padx=(5), pady=(0))
 
@@ -200,7 +214,6 @@ class App(ctk.CTk):
                                        text="Yes",
                                        fg_color="#15803d",
                                        hover_color="#16a34a",
-                                       text_font=("Helvetica", 14, "bold"),
                                        text_color="white",
                                        width=16,
                                        command=lambda: self.launchImageMagicksInstaller(
@@ -211,7 +224,6 @@ class App(ctk.CTk):
                                     text="No",
                                     fg_color="#991b1b",
                                     hover_color="#b91c1c",
-                                    text_font=("Helvetica", 14, "bold"),
                                     text_color="white",
                                     width=16,
                                     command=lambda: window.destroy()
@@ -224,7 +236,6 @@ class App(ctk.CTk):
 
         top_label = ctk.CTkLabel(window,
                                  text="Generating videos",
-                                 text_font=("Helvetica", 14, "bold"),
                                  )
         top_label.grid(row=0, column=0, padx=(5), pady=(5))
         self.verifyData(top_label)
@@ -496,11 +507,22 @@ class App(ctk.CTk):
         subprocess.run(
             ['imageMagicksInstaller/ImageMagick-7.1.0-52-Q16-HDRI-x64-dll.exe'], stdout=subprocess.PIPE)
 
+    def setApiKeyValueInGui(self):
+        print("Setting api key values.. destroying old")
+        self.textbox.destroy()
+        self.textbox = ctk.CTkTextbox(self, height=5,wrap='none')
+        self.textbox.insert("0.0" , self.pexels_api_key)  # insert at line 0 character 0
+        self.textbox.configure(state="disabled")  # configure textbox to be read-only
+        self.textbox.grid(row=self.row1, column=1,padx=10, pady=5,sticky="nsew")
+
     def saveApiKey(self, api_key, window):
         self.config_data['pexelsAPIKey'] = api_key
+        self.pexels_api_key = self.config_data['pexelsAPIKey']
         with open('config.json', 'w') as file:
             json.dump(self.config_data, file, indent=4)
         window.destroy()
+        self.setApiKeyValueInGui()
+        print("done saveApiKey")
 
     def saveAmountOfVideos(self, amount_of_videos):
         self.config_data['amountOfVideosToMake'] = amount_of_videos
